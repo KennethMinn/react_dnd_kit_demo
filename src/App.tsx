@@ -8,6 +8,7 @@ import {
   DragOverEvent,
   DragStartEvent,
 } from "@dnd-kit/core";
+import { Droppable } from "./components/Droppable";
 
 const columns = [
   {
@@ -53,7 +54,6 @@ function App() {
   const [activeTask, setActiveTask] = useState<Task | null>(null);
 
   const onDragStart = (event: DragStartEvent) => {
-    console.log(event);
     if (event.active.data.current?.type === "Task") {
       setActiveTask(event.active.data.current.task);
     }
@@ -100,9 +100,20 @@ function App() {
         (task) => task.id === overTaskId
       );
 
-      tasks[activeTaskIndex].columnId = tasks[overTaskIndex].columnId;
+      // If `over.data.current` contains a columnId, we are hovering over a column
+      const overColumnId = over.data.current?.columnId;
+      if (
+        overColumnId &&
+        prevTasks[activeTaskIndex].columnId !== overColumnId
+      ) {
+        prevTasks[activeTaskIndex].columnId = overColumnId;
+      }
 
-      return arrayMove(prevTasks, activeTaskIndex, overTaskIndex);
+      if (overTaskIndex !== -1) {
+        return arrayMove(prevTasks, activeTaskIndex, overTaskIndex);
+      }
+
+      return [...prevTasks];
     });
   };
 
@@ -112,20 +123,22 @@ function App() {
       //onDragEnd={onDragEnd}
       onDragOver={onDragOver}
     >
-      <div className=" grid grid-cols-3 gap-x-4 m-10">
+      <div className="grid grid-cols-3 m-10 gap-x-4">
         {columns.map((col) => (
-          <div key={col.id} className=" border p-10">
-            <div className=" mb-10">{col.title}</div>
-            <div className="flex flex-col gap-5">
-              <SortableContext items={taskIds}>
-                {tasks
-                  .filter((task) => task.columnId === col.id)
-                  .map((task) => (
-                    <TaskCard key={task.id} task={task} />
-                  ))}
-              </SortableContext>
+          <Droppable id={col.id} key={col.id} columnId={col.id}>
+            <div className="p-10 border ">
+              <div className="mb-10 ">{col.title}</div>
+              <div className="flex flex-col gap-5">
+                <SortableContext items={taskIds}>
+                  {tasks
+                    .filter((task) => task.columnId === col.id)
+                    .map((task) => (
+                      <TaskCard key={task.id} task={task} />
+                    ))}
+                </SortableContext>
+              </div>
             </div>
-          </div>
+          </Droppable>
         ))}
       </div>
     </DndContext>

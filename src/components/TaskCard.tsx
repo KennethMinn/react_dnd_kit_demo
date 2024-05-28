@@ -10,12 +10,13 @@ const TaskCard = ({ task }: { task: Task }) => {
     listeners,
     transform,
     transition,
-    isDragging, //to set drag overlay
+    isDragging,
   } = useSortable({ id: task.id, data: { type: "Task", task } });
 
   const style = {
     transition,
     transform: CSS.Transform.toString(transform),
+    opacity: isDragging ? 0.5 : 1,
   };
 
   return (
@@ -24,7 +25,7 @@ const TaskCard = ({ task }: { task: Task }) => {
       style={style}
       {...attributes}
       {...listeners}
-      className=" border rounded-lg p-5"
+      className="p-5 border rounded-lg"
     >
       {task.name}
     </div>
